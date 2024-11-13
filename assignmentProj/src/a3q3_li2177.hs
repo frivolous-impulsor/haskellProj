@@ -11,7 +11,7 @@ redexes :: Term -> [Term]
 redexes (Var x)= []
 redexes (Lambda x t) = []
 redexes (App a b) 
-    | isRedex (App a b) = [(App a b)] ++ (redexes a) ++ (redexes b)
+    | isRedex (App a b) = (App a b) : (redexes a) ++ (redexes b)
     | otherwise = (redexes a) ++ (redexes b)
 
 sub :: Term -> String -> Term -> Term   --sub all occurance of y in the precending term with term t, a beta reduction
@@ -27,16 +27,18 @@ eval :: Term -> Term
 eval (Var x) = Var x
 eval (Lambda x t) = Lambda x t
 eval (App (Lambda x t1) t2) = sub t1 x (eval t2)
-eval (App t1 t2) = App t1 t2
+eval (App t1 t2) = eval (App (eval t1) t2)     --if the first half of term t1 is not of form Lambda, then we eval first half first to prepare for case 3
 
 
---(λab.a)(λcd.d)
+{-
+e.g. [(\a.a)(\b.b)](\c.c) -> (\b.b)(\c.c) -> \c.c
+
 t :: Term
-t = App (Lambda "a" (Lambda "b" (Var "a")))   (Lambda "c" (Lambda "d" (Var "d"))) 
---(λpq.pqp)
+t =  App (App (Lambda "a" (Var "a")) (Lambda "b" (Var "b"))) (Lambda "c" (Var "c"))
+
 result :: Term
-result = eval (App (Lambda "p" (Lambda "q" (App (Var "p") (App (Var "q") (Var "p"))))) t)
+result = eval t
 
-
-main :: IO()
+main :: IO ()
 main = print result
+-}
